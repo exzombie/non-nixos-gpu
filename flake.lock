@@ -1,5 +1,17 @@
 {
   "nodes": {
+    "config-params": {
+      "flake": false,
+      "locked": {
+        "path": "config.json",
+        "type": "path"
+      },
+      "original": {
+        "path": "config.json",
+        "type": "path"
+      },
+      "parent": []
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1756469547,
@@ -17,6 +29,7 @@
     },
     "root": {
       "inputs": {
+        "config-params": "config-params",
         "nixpkgs": "nixpkgs"
       }
     }

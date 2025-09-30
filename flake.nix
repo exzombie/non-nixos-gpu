@@ -5,16 +5,27 @@
 {
   description = "GPU driver setup for Nix on non-NixOS Linux systems";
 
-  # Nixpkgs / NixOS version to use.
-  inputs.nixpkgs.url = "nixpkgs/nixos-25.05";
+  inputs = {
+    # Nixpkgs / NixOS version to use.
+    nixpkgs.url = "nixpkgs/nixos-25.05";
+
+    # Config file - JSON with enabling nvidia, custom nvidia driver version and sha256
+    config-params = {
+      url = ./config.json;
+      flake = false;
+    };
+  };
+  
 
   outputs =
-    { self, nixpkgs }: let
+    { self, nixpkgs, config-params }: let
       # to work with older version of flakes
       lastModifiedDate = self.lastModifiedDate or self.lastModified or "19700101";
 
       # Generate a user-friendly version number.
       version = builtins.substring 0 8 lastModifiedDate;
+
+      config = builtins.fromJSON (builtins.readFile config-params);
 
       # System types to support.
       supportedSystems = [
@@ -30,7 +41,11 @@
     in {
       # Provide some binary packages for selected system types.
       packages = forAllSystems (system: rec {
-        env = nixpkgsFor.${system}.callPackage ./gpu-libs-env.nix {};
+        nvidia = (nixpkgsFor.${system}.linuxPackages.nvidiaPackages.mkDriver (config.nvidia // { useSettings = false; usePersistenced = false; }).override {
+          libsOnly = true;
+          kernel = null;
+        });
+        env = nixpkgsFor.${system}.callPackage ./gpu-libs-env.nix { nvidia_x11 = nvidia; addNvidia = config.addNvidia; };
         setup = nixpkgsFor.${system}.callPackage ./setup { non-nixos-gpu-env = env; };
       });
 
