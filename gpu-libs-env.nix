@@ -21,7 +21,6 @@ buildEnv {
     libvdpau-va-gl
     intel-media-driver
   ] ++ lib.optionals addNvidia [
-    # TODO do it properly with version matching like nixGL
     nvidia_x11
     nvidia-vaapi-driver
   ];
