@@ -63,6 +63,10 @@ machine.
 
 ## Usage
 
+If you are using Free/Open Source drivers (i.e., mesa), you're fine and can read
+on. If you are using the proprietary Nvidia drivers, skip to [Nvidia
+configuration section](#nvidia-configuration) first, then return here.
+
 
 ### Trying it out
 
@@ -99,8 +103,40 @@ systemd service `non-nixos-gpu.service`. If you wish to undo this setup, simply
 disable the service and remove it from `/etc/systemd/system`.
 
 
-## Current status
+### Nvidia configuration
 
-At the moment, only Free drivers (i.e., mesa) are supported. It should be
-possible to support Nvidia drivers as well, but it's more complicated. If you
-need Nvidia right now, there's [nixGL][nixgl].
+It is **very** important that the driver version installed by this flake matches
+the version used by your OS. So, this flake needs to be edited before use.
+
+1. Clone this repository: `git clone
+   https://github.com/exzombie/non-nixos-gpu.git`
+1. Edit the configuration file: `$EDITOR non-nixos-gpu/config.json`
+   - Set the version to the exact version used by your OS.
+   - Get the hash of the driver file by running
+
+     ```sh
+     nix store prefetch-file https://download.nvidia.com/XFree86/Linux-x86_64/${ver}/NVIDIA-Linux-x86_64-${ver}.run
+     ```
+
+     where `${ver}` stands for the driver version.
+   - The above command will print the hash. Put it into the configuration file
+     into the configuration file under `sha256_64bit` or `sha256_aarch64`,
+     depending on your platform.
+   - Enable the Nvidia driver by setting `addNvidia` to `true`.
+1. Now, you can perform the step in the previous section. Instead of
+   `github:exzombie/non-nixos-gpu`, use `non-nixos-gpu` (or the full path to
+   your git clone).
+1. OpenGL will work as-is. For Vulkan, you need to export the following
+   environment variable:
+
+   ```sh
+   VK_DRIVER_FILES=/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json
+   ```
+
+   Because the same driver is used for both Nix and non-Nix programs, applying
+   this setting to all programs should be harmless. However, for Optimus
+   laptops, you should only export this variable for programs that you want to
+   run on the Nvidia card.
+
+You will need to update the configuration whenever the driver in the base OS is
+updated.
