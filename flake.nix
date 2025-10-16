@@ -78,5 +78,7 @@
       # flake provides only one package or there is a clear "main"
       # package.
       defaultPackage = forAllSystems (system: self.packages.${system}.setup);
+
+      homeManagerModule = import ./hm.nix;
     };
 }

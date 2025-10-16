@@ -63,9 +63,86 @@ machine.
 
 ## Usage
 
-If you are using Free/Open Source drivers (i.e., mesa), you're fine and can read
-on. If you are using the proprietary Nvidia drivers, skip to [Nvidia
-configuration section](#nvidia-configuration) first, then return here.
+
+### Recommended: Home Manager
+
+Using Home Manager is recommended because it makes it straightforward to keep
+the version of Nixpkgs used for drivers in sync with the programs using them.
+
+To use, import the HM module from [`hm.nix`](./hm.nix). If you are using flakes,
+you can use the following setup.
+
+
+#### `flake.nix`
+
+``` nix
+{
+  description = "Home Manager configuration of Jane Doe";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nonNixosGpu = {
+      url = "github:exzombie/non-nixos-gpu";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs =
+    { nixpkgs, home-manager, nonNixosGpu, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      homeConfigurations.jdoe = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [
+          nonNixosGpu.homeManagerModule
+          ./home.nix
+        ];
+      };
+    };
+}
+```
+
+
+#### `home.nix`
+
+``` nix
+{ config, pkgs, ... }:
+
+{
+  ...
+
+  # This option should be enabled on a non-NixOS system anyways.
+  # It implicitly enables building of the GPU drivers.
+  targets.genericLinux.enable = true;
+
+  # If using proprietary Nvidia drivers, set also the following.
+  nonNixosGpu.nvidia = {
+    enable = true;
+    version = "550.163.01";
+    sha256 = "sha256-hfK1D5EiYcGRegss9+H5dDr/0Aj9wPIJ9NVWP3dNUC0=";
+  };
+
+  ...
+}
+```
+
+When switching the HM configuration, the activation script will check whether
+the version of Nix GPU drivers currently in use matches the new HM environment.
+If not, it will print a warning:
+
+``` text
+GPU drivers updated, run 'sudo /nix/store/.../bin/non-nixos-gpu-setup'
+```
+
+To learn more about the Nvidia options, i.e. which version to use and how to
+obtain the hash, [see below](#nvidia-configuration).
 
 
 ### Trying it out
