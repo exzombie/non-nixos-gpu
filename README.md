@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # GPU setup for Nix programs on non-NixOS systems
 
-When running programs from [nixpkgs][nixpkgs] using [Nix][nix], they will
+When running programs from [Nixpkgs][nixpkgs] using [Nix][nix], they will
 normally fail to find OpenGL and Vulkan libraries. The reason is that Nix tries
 to keep programs "hermetic", keeping track of all dependencies. However, this is
 not appropriate for graphics drivers because they depend on the hardware and
@@ -29,7 +29,7 @@ distributions.
 This package builds a derivation containing OpenGL and Vulkan libraries. It then
 installs a Systemd service on the host OS that runs on boot, symlinking these
 libraries to `/run/opengl-driver`. This is the location where programs from
-nixpkgs expect to find them. Programs from the host OS know nothing about this
+Nixpkgs expect to find them. Programs from the host OS know nothing about this
 directory and are unaffected.
 
 
@@ -46,11 +46,11 @@ the wrappers provided by [Home Manager][hm].
 [nixgl]: https://github.com/nix-community/nixGL
 [hm]: https://nix-community.github.io/home-manager/index.xhtml#sec-usage-gpu-non-nixos
 
-However, it often fails in the important case of a wrapped program from nixpkgs
-executing a program from the host. For example, Firefox from nixpkgs must be
+However, it often fails in the important case of a wrapped program from Nixpkgs
+executing a program from the host. For example, Firefox from Nixpkgs must be
 wrapped by nixGL in order for graphical acceleration to work. If you then
 download a PDF file and open it in a PDF viewer that is not installed from
-nixpkgs but is provided by the host distribution, there may be issues. Because
+Nixpkgs but is provided by the host distribution, there may be issues. Because
 Firefox's environment injects libraries from nixGL, they also get injected into
 the PDF viewer, and unless they are the same or compatible version as the
 libraries on the host, the viewer will not work. This problem manifests more
@@ -61,10 +61,23 @@ That said, NixGL has an advantage: it does not require root access to the
 machine.
 
 
-## Usage
+## Trying this out quickly
+
+To try this out quickly, just run the following command. Make sure to change the
+version of Nixpkgs used to the one that matches your system.
+
+``` sh
+sudo -i nix --extra-experimental-features "flakes nix-command" \
+    build --override-input nixpkgs nixpkgs/nixos-25.05 \
+    --out-link /run/opengl-driver github:exzombie/non-nixos-gpu#env
+```
+
+That's all. Programs from Nixpkgs should now work. To undo this change, all you
+need to do is delete `/run/opengl-driver`. **This happens on reboot**, so this
+change is temporary.
 
 
-### Recommended: Home Manager
+## Recommended: use with Home Manager
 
 Using Home Manager is recommended because it makes it straightforward to keep
 the version of Nixpkgs used for drivers in sync with the programs using them.
@@ -73,7 +86,7 @@ To use, import the HM module from [`hm.nix`](./hm.nix). If you are using flakes,
 you can use the following setup.
 
 
-#### `flake.nix`
+### `flake.nix`
 
 ``` nix
 {
@@ -110,7 +123,7 @@ you can use the following setup.
 ```
 
 
-#### `home.nix`
+### `home.nix`
 
 ``` nix
 { config, pkgs, ... }:
@@ -135,7 +148,7 @@ you can use the following setup.
 
 When switching the HM configuration, the activation script will check whether
 the version of Nix GPU drivers currently in use matches the new HM environment.
-If not, it will print a warning:
+If not, it will print a warning and tell you what to do:
 
 ``` text
 GPU drivers updated, run 'sudo /nix/store/.../bin/non-nixos-gpu-setup'
@@ -145,28 +158,12 @@ To learn more about the Nvidia options, i.e. which version to use and how to
 obtain the hash, [see below](#nvidia-configuration).
 
 
-### Trying it out
-
-To try this out quickly, just run the following command. Make sure to change the
-version of nixpkgs used to the one that matches your system.
-
-``` sh
-sudo -i nix --extra-experimental-features "flakes nix-command" \
-    build --override-input nixpkgs nixpkgs/nixos-25.05 \
-    --out-link /run/opengl-driver github:exzombie/non-nixos-gpu#env
-```
-
-That's all. Programs from nixpkgs should now work. To undo this change, all you
-need to do is delete `/run/opengl-driver`. **This happens on reboot**, so this
-change is temporary.
-
-
-### A more permanent setup
+## A more permanent setup without Home Manager
 
 This flake provides a package called `setup`, which is also the default package
 of the flake. It provides a script called `non-nixos-gpu-setup` which creates a
 more permanent setup. The quickest way to do so is to run the following command.
-Make sure to change the version of nixpkgs used to the one that matches your
+Make sure to change the version of Nixpkgs used to the one that matches your
 system.
 
 ``` sh
@@ -179,11 +176,14 @@ Now, the OS setup will be automatically renewed on every boot. This is done by a
 systemd service `non-nixos-gpu.service`. If you wish to undo this setup, simply
 disable the service and remove it from `/etc/systemd/system`.
 
+You will need to re-run this every time you update Nixpkgs.
 
-### Nvidia configuration
+
+## Nvidia configuration
 
 It is **very** important that the driver version installed by this flake matches
 the version used by your OS. So, this flake needs to be edited before use.
+**This needs to be done whenever you update Nvidia drivers on the host!**
 
 1. Clone this repository: `git clone
    https://github.com/exzombie/non-nixos-gpu.git`
