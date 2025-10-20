@@ -27,7 +27,7 @@
       enable = mkEnableOption "proprietary Nvidia drivers.";
 
       version = mkOption {
-        type = types.nullOr (types.strMatching "[0-9]{3}\\.[0-9]{3}\\.[0-9]{2}");
+        type = types.nullOr (types.strMatching "[0-9]{3}\\.[0-9]{2,3}\\.[0-9]{2}");
         default = null;
         example = literalExpression "550.163.01";
         description = ''
