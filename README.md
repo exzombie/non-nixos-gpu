@@ -185,9 +185,15 @@ It is **very** important that the driver version installed by this flake matches
 the version used by your OS. So, this flake needs to be edited before use.
 **This needs to be done whenever you update Nvidia drivers on the host!**
 
-1. Clone this repository: `git clone
-   https://github.com/exzombie/non-nixos-gpu.git`
-1. Edit the configuration file: `$EDITOR non-nixos-gpu/config.json`
+1. Either:
+
+   - Use Home Manager as described above and its Nvidia-related options, or
+   - Clone this repository with `git clone
+     https://github.com/exzombie/non-nixos-gpu.git` and edit the configuration
+     file: `$EDITOR non-nixos-gpu/config.json`
+
+1. Determine which Nvidia drivers to use:
+
    - Set the version to the exact version used by your OS.
    - Get the hash of the driver file by running
 
@@ -198,11 +204,14 @@ the version used by your OS. So, this flake needs to be edited before use.
      where `${ver}` stands for the driver version.
    - The above command will print the hash. Put it into the configuration file
      into the configuration file under `sha256_64bit` or `sha256_aarch64`,
-     depending on your platform.
-   - Enable the Nvidia driver by setting `addNvidia` to `true`.
+     depending on your platform. For the Home Manager module, there is only one
+     option named `sha256`.
+   - Enable the Nvidia driver by setting `addNvidia` to `true` in the config
+     file.
+
 1. Now, you can perform the step in the previous section. Instead of
    `github:exzombie/non-nixos-gpu`, use `non-nixos-gpu` (or the full path to
-   your git clone).
+   your git clone). Or, if using Home Manager, do `home-manager switch`.
 
 You will need to update the configuration whenever the driver in the base OS is
 updated.
