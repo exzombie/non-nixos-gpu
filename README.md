@@ -203,17 +203,6 @@ the version used by your OS. So, this flake needs to be edited before use.
 1. Now, you can perform the step in the previous section. Instead of
    `github:exzombie/non-nixos-gpu`, use `non-nixos-gpu` (or the full path to
    your git clone).
-1. OpenGL will work as-is. For Vulkan, you need to export the following
-   environment variable:
-
-   ```sh
-   VK_DRIVER_FILES=/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json
-   ```
-
-   Because the same driver is used for both Nix and non-Nix programs, applying
-   this setting to all programs should be harmless. However, for Optimus
-   laptops, you should only export this variable for programs that you want to
-   run on the Nvidia card.
 
 You will need to update the configuration whenever the driver in the base OS is
 updated.
