@@ -4,6 +4,12 @@ SPDX-FileCopyrightText: 2025 Jure Varlec <jure@varlec.si>
 SPDX-License-Identifier: MIT
 -->
 
+# DEPRECATED
+
+**This functionality is part of Home Manager as of release 25.11.** Not saying
+that you can't use this repo, but up-to-date code is not here 😉
+
+
 # GPU setup for Nix programs on non-NixOS systems
 
 When running programs from [Nixpkgs][nixpkgs] using [Nix][nix], they will
